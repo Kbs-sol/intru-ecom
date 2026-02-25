@@ -1,6 +1,7 @@
 ---
 import type { Product } from "@/lib/db";
 import { formatPrice } from "@/lib/utils";
+import { withBase } from "@/lib/config";
 
 interface Props {
   product: Product;
@@ -31,7 +32,7 @@ const displayPrice = product.sale_price ?? product.price;
   }`}
 >
   <!-- Image -->
-  <a href={`/products/${product.slug}`} class="block overflow-hidden aspect-[3/4]">
+  <a href={withBase(`/products/${product.slug}`)} class="block overflow-hidden aspect-[3/4]">
     <img
       src={product.image_url}
       alt={product.name}
@@ -49,7 +50,7 @@ const displayPrice = product.sale_price ?? product.price;
 
   <!-- Info -->
   <div class="p-4">
-    <a href={`/products/${product.slug}`} class="block">
+    <a href={withBase(`/products/${product.slug}`)} class="block">
       <h3 class="font-outfit font-semibold text-white text-sm tracking-wider uppercase hover:text-brand-red transition-colors duration-200">
         {product.name}
       </h3>

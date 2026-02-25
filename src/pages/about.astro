@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import { withBase } from "@/lib/config";
 
 const orgSchema = {
   "@context": "https://schema.org",
@@ -133,7 +134,7 @@ const orgSchema = {
       <p class="text-zinc-400 font-inter text-base mb-10 leading-relaxed">
         Join hundreds of people who've made the switch to clothing that actually lasts. Shop the collection today.
       </p>
-      <a href="/products" class="btn-primary inline-block">
+      <a href={withBase("/products")} class="btn-primary inline-block">
         Shop the Collection
       </a>
     </div>

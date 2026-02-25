@@ -1,4 +1,5 @@
 ---
+import { withBase } from "@/lib/config";
 ---
 
 <!-- Overlay -->
@@ -55,7 +56,7 @@
       </svg>
       <p class="text-zinc-500 font-inter text-sm">Your bag is empty</p>
       <a
-        href="/products"
+        href={withBase("/products")}
         x-on:click="$store.cart.open = false"
         class="mt-4 text-xs font-outfit tracking-widest uppercase text-brand-red hover:text-red-400 transition-colors"
       >
@@ -118,7 +119,7 @@
       <span class="text-white font-outfit font-bold text-lg" x-text="$store.cart.formatPrice($store.cart.total)"></span>
     </div>
     <a
-      href="/checkout"
+      href={withBase("/checkout")}
       class="block w-full bg-brand-red text-white text-center py-4 font-outfit font-bold tracking-widest uppercase text-sm hover:bg-red-700 transition-colors duration-200"
     >
       Checkout

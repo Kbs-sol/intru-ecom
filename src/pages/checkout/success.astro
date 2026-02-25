@@ -1,5 +1,6 @@
 ---
 import BaseLayout from "@/layouts/BaseLayout.astro";
+import { withBase } from "@/lib/config";
 
 const orderId = Astro.url.searchParams.get("order") || "";
 ---
@@ -20,8 +21,8 @@ const orderId = Astro.url.searchParams.get("order") || "";
         <p class="text-zinc-600 text-xs font-inter mb-8">Order ID: <span class="text-zinc-400 font-mono">{orderId}</span></p>
       )}
       <div class="flex flex-col sm:flex-row gap-4 justify-center">
-        <a href="/products" class="btn-primary inline-block">Continue Shopping</a>
-        <a href="/" class="btn-secondary inline-block">Back to Home</a>
+        <a href={withBase("/products")} class="btn-primary inline-block">Continue Shopping</a>
+        <a href={withBase("/")} class="btn-secondary inline-block">Back to Home</a>
       </div>
     </div>
   </div>
