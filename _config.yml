@@ -1,0 +1,16 @@
+title: intru-ecom
+exclude:
+  - node_modules
+  - src
+  - public
+  - package.json
+  - package-lock.json
+  - astro.config.mjs
+  - tailwind.config.mjs
+  - tsconfig.json
+  - wrangler.toml
+  - schema.sql
+  - seed.sql
+  - .env.example
+  - README.md
+  - .github
