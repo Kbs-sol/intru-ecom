@@ -1,0 +1,103 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import ProductCard from "@/components/ProductCard.astro";
+import { getProducts } from "@/lib/db";
+
+const db = Astro.locals.runtime?.env?.DB;
+let products = [];
+if (db) {
+  products = await getProducts(db);
+}
+
+const categoryParam = Astro.url.searchParams.get("cat");
+const filtered = categoryParam ? products.filter((p) => p.category === categoryParam) : products;
+
+const categories = [
+  { slug: "", label: "All" },
+  { slug: "tshirts", label: "T-Shirts" },
+  { slug: "hoodies", label: "Hoodies" },
+  { slug: "bottoms", label: "Bottoms" },
+  { slug: "jackets", label: "Jackets" },
+  { slug: "sets", label: "Sets" },
+];
+
+const breadcrumb = {
+  "@context": "https://schema.org",
+  "@type": "BreadcrumbList",
+  itemListElement: [
+    { "@type": "ListItem", position: 1, name: "Home", item: "https://intru.in" },
+    { "@type": "ListItem", position: 2, name: "Shop", item: "https://intru.in/products" },
+  ],
+};
+---
+
+<BaseLayout
+  title="Shop All Products — intru.in"
+  description="Browse all intru.in products. Premium minimal streetwear — heavyweight tees, hoodies, cargos, track jackets, and sets. Free shipping on prepaid orders above ₹999."
+  schema={breadcrumb}
+>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Header -->
+    <div class="mb-10">
+      <p class="text-brand-red text-xs font-outfit tracking-widest uppercase mb-2">Collection</p>
+      <h1 class="section-title text-3xl md:text-4xl">Shop All</h1>
+    </div>
+
+    <!-- Category filters -->
+    <div class="flex gap-2 mb-10 overflow-x-auto pb-2">
+      {categories.map((cat) => (
+        <a
+          href={cat.slug ? `/products?cat=${cat.slug}` : "/products"}
+          class={`flex-shrink-0 px-4 py-2 text-xs font-outfit tracking-widest uppercase border transition-all duration-200 ${
+            categoryParam === cat.slug || (cat.slug === "" && !categoryParam)
+              ? "border-white text-white bg-white/5"
+              : "border-zinc-700 text-zinc-500 hover:border-zinc-400 hover:text-white"
+          }`}
+        >
+          {cat.label}
+        </a>
+      ))}
+    </div>
+
+    <!-- Products grid -->
+    {filtered.length > 0 ? (
+      <div class="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+        {filtered.map((product) => (
+          <ProductCard product={product} />
+        ))}
+      </div>
+    ) : products.length === 0 ? (
+      <!-- Fallback static products when DB not available -->
+      <div class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+        {[
+          { name: "Intru Classic Tee", price: 999, og: 1299, img: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=600&q=80", slug: "intru-classic-tee", desc: "Heavyweight 100% combed cotton tee." },
+          { name: "Intru Oversized Drop", price: 1299, og: 1599, img: "https://images.unsplash.com/photo-1562157873-818bc0726f68?w=600&q=80", slug: "intru-oversized-drop", desc: "Garment-washed oversized silhouette." },
+          { name: "Intru Essential Hoodie", price: 1999, og: 2499, img: "https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80", slug: "intru-essential-hoodie", desc: "400GSM heavyweight fleece hoodie." },
+          { name: "Intru Cargo Pants", price: 2499, og: 2999, img: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=600&q=80", slug: "intru-cargo-pants", desc: "Ripstop cargo with 6 pockets." },
+          { name: "Intru Zip-Up Track", price: 1799, og: 2199, img: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=600&q=80", slug: "intru-zipup-track", desc: "Minimal track jacket with ribbed trim." },
+          { name: "Intru Jogger Set", price: 2999, og: 3499, img: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=600&q=80", slug: "intru-jogger-set", desc: "Matching French terry jogger set." },
+        ].map((p) => (
+          <a href={`/products/${p.slug}`} class="group block bg-zinc-900 overflow-hidden hover:scale-[1.02] transition-transform duration-300">
+            <div class="aspect-[3/4] overflow-hidden relative">
+              <img src={p.img} alt={p.name} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
+              <div class="absolute top-3 left-3 bg-brand-red text-white text-[10px] font-bold tracking-widest uppercase px-2 py-1">Sale</div>
+            </div>
+            <div class="p-4">
+              <h2 class="font-outfit font-semibold text-white text-xs tracking-wider uppercase">{p.name}</h2>
+              <p class="text-zinc-500 text-xs mt-1">{p.desc}</p>
+              <div class="flex gap-2 mt-2">
+                <span class="text-white font-inter font-medium text-sm">₹{p.price}</span>
+                <span class="text-zinc-500 line-through text-xs">₹{p.og}</span>
+              </div>
+            </div>
+          </a>
+        ))}
+      </div>
+    ) : (
+      <div class="text-center py-24">
+        <p class="text-zinc-500 font-inter">No products found in this category.</p>
+        <a href="/products" class="mt-4 inline-block text-xs font-outfit tracking-widest uppercase text-brand-red">View All →</a>
+      </div>
+    )}
+  </div>
+</BaseLayout>

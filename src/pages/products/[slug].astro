@@ -1,0 +1,276 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getProductBySlug, getProducts } from "@/lib/db";
+import { formatPrice } from "@/lib/utils";
+
+const { slug } = Astro.params;
+
+const db = Astro.locals.runtime?.env?.DB;
+let product = null;
+if (db && slug) {
+  product = await getProductBySlug(db, slug);
+}
+
+// Static fallback products
+const staticProducts: Record<string, {
+  id: string; name: string; slug: string; description: string;
+  price: number; sale_price: number; category: string; image_url: string;
+  images: string; sizes: string; stock_status: string; featured: number;
+  meta_title: string; meta_description: string; created_at: string; updated_at: string;
+}> = {
+  "intru-classic-tee": {
+    id: "prod_001", name: "Intru Classic Tee", slug: "intru-classic-tee",
+    description: "Our signature heavyweight tee crafted from 100% premium combed cotton. Structured fit, minimal design, maximum presence. Built to outlast fast fashion with reinforced seams and pre-shrunk fabric.",
+    price: 1299, sale_price: 999, category: "tshirts",
+    image_url: "https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80",
+    images: '["https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80"]',
+    sizes: '["S","M","L","XL","XXL"]', stock_status: "in_stock", featured: 1,
+    meta_title: "Intru Classic Tee | intru.in", meta_description: "Shop the Intru Classic Tee.",
+    created_at: "", updated_at: "",
+  },
+  "intru-oversized-drop": {
+    id: "prod_002", name: "Intru Oversized Drop", slug: "intru-oversized-drop",
+    description: "The ultimate oversized silhouette. Dropped shoulders, extended hem, garment-washed for that lived-in feel right out of the box.",
+    price: 1599, sale_price: 1299, category: "tshirts",
+    image_url: "https://images.unsplash.com/photo-1562157873-818bc0726f68?w=800&q=80",
+    images: '["https://images.unsplash.com/photo-1562157873-818bc0726f68?w=800&q=80"]',
+    sizes: '["S","M","L","XL","XXL"]', stock_status: "in_stock", featured: 1,
+    meta_title: "Intru Oversized Drop | intru.in", meta_description: "Oversized garment-washed tee.",
+    created_at: "", updated_at: "",
+  },
+  "intru-essential-hoodie": {
+    id: "prod_003", name: "Intru Essential Hoodie", slug: "intru-essential-hoodie",
+    description: "Heavyweight 400GSM fleece hoodie with a clean, minimal front. Ribbed cuffs and hem, kangaroo pocket, and an adjustable drawstring hood.",
+    price: 2499, sale_price: 1999, category: "hoodies",
+    image_url: "https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=800&q=80",
+    images: '["https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=800&q=80"]',
+    sizes: '["S","M","L","XL","XXL"]', stock_status: "in_stock", featured: 1,
+    meta_title: "Intru Essential Hoodie | intru.in", meta_description: "400GSM heavyweight fleece hoodie.",
+    created_at: "", updated_at: "",
+  },
+  "intru-cargo-pants": {
+    id: "prod_004", name: "Intru Cargo Pants", slug: "intru-cargo-pants",
+    description: "Functional meets minimal. Six-pocket cargo pants in durable ripstop fabric with an adjustable waistband and tapered leg.",
+    price: 2999, sale_price: 2499, category: "bottoms",
+    image_url: "https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=800&q=80",
+    images: '["https://images.unsplash.com/photo-1473966968600-fa801b869a1a?w=800&q=80"]',
+    sizes: '["S","M","L","XL","XXL"]', stock_status: "in_stock", featured: 0,
+    meta_title: "Intru Cargo Pants | intru.in", meta_description: "Minimal ripstop cargo pants.",
+    created_at: "", updated_at: "",
+  },
+  "intru-zipup-track": {
+    id: "prod_005", name: "Intru Zip-Up Track", slug: "intru-zipup-track",
+    description: "A modern take on the classic track jacket. Full-zip with ribbed trim, side pockets, and clean minimal branding.",
+    price: 2199, sale_price: 1799, category: "jackets",
+    image_url: "https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80",
+    images: '["https://images.unsplash.com/photo-1591047139829-d91aecb6caea?w=800&q=80"]',
+    sizes: '["S","M","L","XL","XXL"]', stock_status: "in_stock", featured: 0,
+    meta_title: "Intru Zip-Up Track | intru.in", meta_description: "Minimal track jacket.",
+    created_at: "", updated_at: "",
+  },
+  "intru-jogger-set": {
+    id: "prod_006", name: "Intru Jogger Set", slug: "intru-jogger-set",
+    description: "Matching jogger set in 320GSM French terry. The hoodie and joggers are designed to be worn together or separately.",
+    price: 3499, sale_price: 2999, category: "sets",
+    image_url: "https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80",
+    images: '["https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?w=800&q=80"]',
+    sizes: '["S","M","L","XL","XXL"]', stock_status: "in_stock", featured: 0,
+    meta_title: "Intru Jogger Set | intru.in", meta_description: "320GSM French terry co-ord set.",
+    created_at: "", updated_at: "",
+  },
+};
+
+if (!product && slug && staticProducts[slug]) {
+  product = staticProducts[slug];
+}
+
+if (!product) {
+  return Astro.redirect("/products");
+}
+
+const sizes = JSON.parse(product.sizes || '["S","M","L","XL","XXL"]') as string[];
+const images = JSON.parse(product.images || `["${product.image_url}"]`) as string[];
+const displayPrice = product.sale_price ?? product.price;
+
+const productSchema = {
+  "@context": "https://schema.org",
+  "@type": "Product",
+  name: product.name,
+  description: product.description,
+  image: images,
+  brand: { "@type": "Brand", name: "intru.in" },
+  offers: {
+    "@type": "Offer",
+    url: `https://intru.in/products/${product.slug}`,
+    priceCurrency: "INR",
+    price: displayPrice,
+    availability: product.stock_status === "in_stock" ? "https://schema.org/InStock" : "https://schema.org/OutOfStock",
+    seller: { "@type": "Organization", name: "intru.in" },
+  },
+};
+---
+
+<BaseLayout
+  title={product.meta_title || `${product.name} | intru.in`}
+  description={product.meta_description || product.description?.slice(0, 160)}
+  image={images[0]}
+  schema={productSchema}
+>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <!-- Breadcrumb -->
+    <nav class="flex items-center gap-2 text-xs text-zinc-500 mb-8 font-outfit tracking-wider uppercase">
+      <a href="/" class="hover:text-white transition-colors">Home</a>
+      <span>/</span>
+      <a href="/products" class="hover:text-white transition-colors">Shop</a>
+      <span>/</span>
+      <span class="text-white">{product.name}</span>
+    </nav>
+
+    <div
+      class="grid md:grid-cols-2 gap-12 lg:gap-20"
+      x-data={`{
+        selectedSize: '',
+        selectedImage: ${JSON.stringify(images[0])},
+        qty: 1,
+        product: ${JSON.stringify({
+          id: product.id,
+          name: product.name,
+          price: product.price,
+          sale_price: product.sale_price,
+          image_url: product.image_url,
+        })},
+        addToCart() {
+          if (!this.selectedSize) {
+            alert('Please select a size');
+            return;
+          }
+          $store.cart.add(this.product, this.selectedSize, this.qty);
+        }
+      }`}
+    >
+      <!-- Images -->
+      <div class="space-y-4">
+        <div class="aspect-[3/4] overflow-hidden bg-zinc-900">
+          <img
+            :src="selectedImage"
+            src={images[0]}
+            :alt="product.name"
+            alt={product.name}
+            class="w-full h-full object-cover"
+            width="600"
+            height="800"
+          />
+        </div>
+        {images.length > 1 && (
+          <div class="grid grid-cols-4 gap-2">
+            {images.map((img) => (
+              <button
+                x-on:click={`selectedImage = '${img}'`}
+                x-bind:class={`selectedImage === '${img}' ? 'ring-2 ring-brand-red' : 'ring-1 ring-zinc-700'`}
+                class="aspect-square overflow-hidden bg-zinc-900"
+              >
+                <img src={img} alt={product.name} class="w-full h-full object-cover" loading="lazy" />
+              </button>
+            ))}
+          </div>
+        )}
+      </div>
+
+      <!-- Product info -->
+      <div class="flex flex-col">
+        <div>
+          <p class="text-zinc-500 text-xs font-outfit tracking-widest uppercase mb-2">{product.category}</p>
+          <h1 class="font-outfit font-bold text-2xl md:text-3xl text-white tracking-wide uppercase">{product.name}</h1>
+
+          <!-- Price -->
+          <div class="flex items-baseline gap-3 mt-4">
+            <span class="text-white font-outfit font-bold text-2xl">{formatPrice(displayPrice)}</span>
+            {product.sale_price && product.sale_price < product.price && (
+              <>
+                <span class="text-zinc-500 line-through text-base">{formatPrice(product.price)}</span>
+                <span class="bg-brand-red text-white text-[10px] font-bold tracking-wider uppercase px-2 py-0.5">
+                  {Math.round((1 - product.sale_price / product.price) * 100)}% off
+                </span>
+              </>
+            )}
+          </div>
+          <p class="text-zinc-500 text-xs font-inter mt-1">Inclusive of all taxes</p>
+        </div>
+
+        <!-- Size selector -->
+        <div class="mt-8">
+          <div class="flex items-center justify-between mb-3">
+            <p class="text-white text-xs font-outfit tracking-widest uppercase">Select Size</p>
+            <button class="text-xs text-zinc-500 hover:text-white transition-colors font-inter">Size Guide</button>
+          </div>
+          <div class="grid grid-cols-5 gap-2">
+            {sizes.map((size) => (
+              <button
+                x-on:click={`selectedSize = '${size}'`}
+                x-bind:class={`selectedSize === '${size}' ? 'border-white text-white bg-white/10' : 'border-zinc-700 text-zinc-400 hover:border-zinc-400 hover:text-white'`}
+                class="py-3 text-xs font-outfit tracking-wider uppercase border transition-all duration-150"
+              >
+                {size}
+              </button>
+            ))}
+          </div>
+          <p x-show="!selectedSize" class="text-zinc-500 text-xs mt-2 font-inter">Please select a size</p>
+        </div>
+
+        <!-- Quantity -->
+        <div class="mt-6">
+          <p class="text-white text-xs font-outfit tracking-widest uppercase mb-3">Quantity</p>
+          <div class="flex items-center border border-zinc-700 w-32">
+            <button
+              x-on:click="qty = Math.max(1, qty - 1)"
+              class="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
+            >
+              −
+            </button>
+            <span x-text="qty" class="flex-1 text-center text-white font-inter text-sm"></span>
+            <button
+              x-on:click="qty = Math.min(10, qty + 1)"
+              class="w-10 h-10 flex items-center justify-center text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all"
+            >
+              +
+            </button>
+          </div>
+        </div>
+
+        <!-- Add to cart -->
+        <div class="mt-8 flex flex-col gap-3">
+          <button
+            x-on:click="addToCart()"
+            class="btn-primary w-full"
+          >
+            Add to Bag
+          </button>
+          <a href="/checkout" class="btn-secondary w-full text-center" x-on:click="addToCart()">
+            Buy Now
+          </a>
+        </div>
+
+        <!-- Features -->
+        <div class="mt-8 grid grid-cols-2 gap-3">
+          {[
+            { icon: "🚚", text: "Free shipping above ₹999" },
+            { icon: "↩", text: "7-day easy returns" },
+            { icon: "🔒", text: "Secure payments" },
+            { icon: "📦", text: "COD available" },
+          ].map((f) => (
+            <div class="flex items-center gap-2 text-zinc-400 text-xs font-inter">
+              <span>{f.icon}</span>
+              <span>{f.text}</span>
+            </div>
+          ))}
+        </div>
+
+        <!-- Description -->
+        <div class="mt-8 border-t border-zinc-800 pt-8">
+          <h2 class="text-white font-outfit font-semibold text-xs tracking-widest uppercase mb-4">Product Details</h2>
+          <p class="text-zinc-400 font-inter text-sm leading-relaxed">{product.description}</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</BaseLayout>

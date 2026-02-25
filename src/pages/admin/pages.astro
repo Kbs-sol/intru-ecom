@@ -1,0 +1,135 @@
+---
+import AdminLayout from "@/layouts/AdminLayout.astro";
+import { getPages } from "@/lib/db";
+
+const db = Astro.locals.runtime?.env?.DB;
+let pages = [];
+if (db) {
+  pages = await getPages(db);
+}
+---
+
+<AdminLayout title="Content Pages">
+  <div style="display:grid; grid-template-columns:240px 1fr; gap:24px; min-height:600px;">
+    <!-- Page list -->
+    <div style="background:white; border-radius:4px; padding:16px; height:fit-content;">
+      <h3 style="font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:#999; margin-bottom:12px;">Pages</h3>
+      <ul style="list-style:none; margin:0; padding:0;">
+        {pages.map((page, i) => (
+          <li>
+            <button
+              onclick={`selectPage(${i})`}
+              id={`tab-${page.slug}`}
+              style="width:100%; text-align:left; padding:10px 12px; background:none; border:none; cursor:pointer; font-size:13px; color:#333; border-radius:2px; transition:background 0.15s;"
+              class="page-tab"
+            >
+              {page.title}
+            </button>
+          </li>
+        ))}
+      </ul>
+    </div>
+
+    <!-- Editor -->
+    <div id="page-editor" style="background:white; border-radius:4px; padding:24px;">
+      {pages.length === 0 ? (
+        <p style="color:#999; text-align:center; padding:40px;">No pages found. Run seed.sql to initialize pages.</p>
+      ) : (
+        <>
+          {pages.map((page, i) => (
+            <div id={`editor-${page.slug}`} class="page-content" style={`display:${i === 0 ? 'block' : 'none'};`}>
+              <form onsubmit={`savePage(event, '${page.slug}')`}>
+                <div style="margin-bottom:16px;">
+                  <label style="font-size:11px; color:#666; text-transform:uppercase; letter-spacing:0.1em; display:block; margin-bottom:6px;">Title</label>
+                  <input
+                    type="text"
+                    id={`title-${page.slug}`}
+                    value={page.title}
+                    style="width:100%; padding:10px; border:1px solid #ddd; font-size:13px; outline:none;"
+                  />
+                </div>
+                <div style="margin-bottom:16px;">
+                  <label style="font-size:11px; color:#666; text-transform:uppercase; letter-spacing:0.1em; display:block; margin-bottom:6px;">Meta Title</label>
+                  <input
+                    type="text"
+                    id={`meta-title-${page.slug}`}
+                    value={page.meta_title || ""}
+                    style="width:100%; padding:10px; border:1px solid #ddd; font-size:13px; outline:none;"
+                  />
+                </div>
+                <div style="margin-bottom:16px;">
+                  <label style="font-size:11px; color:#666; text-transform:uppercase; letter-spacing:0.1em; display:block; margin-bottom:6px;">Meta Description</label>
+                  <input
+                    type="text"
+                    id={`meta-desc-${page.slug}`}
+                    value={page.meta_description || ""}
+                    style="width:100%; padding:10px; border:1px solid #ddd; font-size:13px; outline:none;"
+                  />
+                </div>
+                <div style="margin-bottom:16px;">
+                  <label style="font-size:11px; color:#666; text-transform:uppercase; letter-spacing:0.1em; display:block; margin-bottom:6px;">
+                    Content (HTML)
+                  </label>
+                  <textarea
+                    id={`content-${page.slug}`}
+                    rows="20"
+                    style="width:100%; padding:10px; border:1px solid #ddd; font-size:12px; outline:none; font-family:monospace; resize:vertical;"
+                    set:text={page.content || ""}
+                  ></textarea>
+                </div>
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <button type="submit" style="background:#d73f3f; color:white; border:none; padding:10px 24px; font-family:'Outfit',sans-serif; font-size:11px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer;">
+                    Save Page
+                  </button>
+                  <span id={`save-msg-${page.slug}`} style="font-size:12px; color:#22c55e; display:none;">Saved!</span>
+                </div>
+              </form>
+            </div>
+          ))}
+        </>
+      )}
+    </div>
+  </div>
+</AdminLayout>
+
+<script is:inline>
+  const pages = document.querySelectorAll(".page-content");
+  const tabs = document.querySelectorAll(".page-tab");
+
+  function selectPage(index) {
+    pages.forEach((p, i) => {
+      (p as HTMLElement).style.display = i === index ? "block" : "none";
+    });
+    tabs.forEach((t, i) => {
+      (t as HTMLElement).style.background = i === index ? "#f8f8f8" : "none";
+    });
+  }
+
+  // Activate first tab
+  if (tabs.length > 0) selectPage(0);
+
+  async function savePage(e, slug) {
+    e.preventDefault();
+    const msgEl = document.getElementById(`save-msg-${slug}`);
+    try {
+      const res = await fetch("/api/admin/pages", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          slug,
+          title: (document.getElementById(`title-${slug}`) as HTMLInputElement).value,
+          meta_title: (document.getElementById(`meta-title-${slug}`) as HTMLInputElement).value,
+          meta_description: (document.getElementById(`meta-desc-${slug}`) as HTMLInputElement).value,
+          content: (document.getElementById(`content-${slug}`) as HTMLTextAreaElement).value,
+        }),
+      });
+      if (res.ok) {
+        if (msgEl) { msgEl.style.display = "inline"; setTimeout(() => msgEl.style.display = "none", 2000); }
+      } else {
+        alert("Failed to save page");
+      }
+    } catch {
+      alert("Error saving page");
+    }
+  }
+</script>

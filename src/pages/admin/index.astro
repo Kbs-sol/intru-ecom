@@ -1,0 +1,81 @@
+---
+import AdminLayout from "@/layouts/AdminLayout.astro";
+import { getProducts, getOrders } from "@/lib/db";
+
+const db = Astro.locals.runtime?.env?.DB;
+let products = [];
+let orders = [];
+let totalRevenue = 0;
+
+if (db) {
+  [products, orders] = await Promise.all([getProducts(db), getOrders(db)]);
+  totalRevenue = orders
+    .filter((o) => o.status === "paid" || o.status === "shipped" || o.status === "delivered")
+    .reduce((sum, o) => sum + o.total, 0);
+}
+
+const stats = [
+  { label: "Total Orders", value: orders.length, color: "#d73f3f" },
+  { label: "Revenue", value: `₹${totalRevenue.toLocaleString("en-IN")}`, color: "#22c55e" },
+  { label: "Products", value: products.length, color: "#3b82f6" },
+  { label: "Pending Orders", value: orders.filter((o) => o.status === "pending").length, color: "#f59e0b" },
+];
+---
+
+<AdminLayout title="Dashboard">
+  <!-- Stats -->
+  <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(200px, 1fr)); gap:16px; margin-bottom:32px;">
+    {stats.map((stat) => (
+      <div style={`background:white; padding:24px; border-radius:4px; border-left:4px solid ${stat.color};`}>
+        <div style={`font-size:28px; font-weight:700; font-family:'Outfit',sans-serif; color:${stat.color};`}>{stat.value}</div>
+        <div style="font-size:12px; color:#666; text-transform:uppercase; letter-spacing:0.1em; margin-top:4px;">{stat.label}</div>
+      </div>
+    ))}
+  </div>
+
+  <!-- Recent Orders -->
+  <div style="background:white; border-radius:4px; padding:24px;">
+    <h2 style="font-family:'Outfit',sans-serif; font-size:16px; font-weight:700; margin-bottom:16px;">Recent Orders</h2>
+    {orders.length > 0 ? (
+      <div style="overflow-x:auto;">
+        <table style="width:100%; border-collapse:collapse; font-size:13px;">
+          <thead>
+            <tr style="border-bottom:2px solid #f0f0f0;">
+              <th style="text-align:left; padding:8px; font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:#999;">Order ID</th>
+              <th style="text-align:left; padding:8px; font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:#999;">Customer</th>
+              <th style="text-align:left; padding:8px; font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:#999;">Total</th>
+              <th style="text-align:left; padding:8px; font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:#999;">Status</th>
+              <th style="text-align:left; padding:8px; font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:#999;">Date</th>
+            </tr>
+          </thead>
+          <tbody>
+            {orders.slice(0, 10).map((order) => (
+              <tr style="border-bottom:1px solid #f8f8f8;">
+                <td style="padding:10px 8px; font-family:monospace; font-size:11px; color:#666;">{order.id.slice(0, 16)}...</td>
+                <td style="padding:10px 8px;">{order.customer_name}<br/><span style="font-size:11px; color:#999;">{order.customer_email}</span></td>
+                <td style="padding:10px 8px; font-weight:600;">₹{order.total.toLocaleString("en-IN")}</td>
+                <td style="padding:10px 8px;">
+                  <span style={`font-size:10px; padding:3px 8px; border-radius:2px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; background:${
+                    order.status === 'paid' ? '#dcfce7' : order.status === 'pending' ? '#fef3c7' : order.status === 'shipped' ? '#dbeafe' : '#f3f4f6'
+                  }; color:${
+                    order.status === 'paid' ? '#166534' : order.status === 'pending' ? '#92400e' : order.status === 'shipped' ? '#1e40af' : '#374151'
+                  };`}>
+                    {order.status}
+                  </span>
+                </td>
+                <td style="padding:10px 8px; font-size:11px; color:#999;">{new Date(order.created_at).toLocaleDateString("en-IN")}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+    ) : (
+      <p style="color:#999; font-size:13px; text-align:center; padding:40px 0;">No orders yet</p>
+    )}
+    {orders.length > 0 && (
+      <div style="margin-top:16px; text-align:right;">
+        <a href="/admin/orders" style="font-size:12px; color:#d73f3f; text-decoration:none;">View All Orders →</a>
+      </div>
+    )}
+  </div>
+</AdminLayout>

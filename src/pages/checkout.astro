@@ -1,0 +1,269 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getSession } from "@/lib/auth";
+
+const secret = import.meta.env.AUTH_SECRET || "";
+const session = await getSession(Astro.request, secret);
+
+const razorpayKeyId = import.meta.env.PUBLIC_RAZORPAY_KEY_ID || import.meta.env.RAZORPAY_KEY_ID || "";
+---
+
+<BaseLayout title="Checkout — intru.in" noindex={true}>
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+    <h1 class="section-title text-2xl md:text-3xl mb-10">Checkout</h1>
+
+    <div class="grid lg:grid-cols-2 gap-12" x-data="checkoutApp()">
+      <!-- Shipping form -->
+      <div>
+        <h2 class="font-outfit font-semibold text-white text-xs tracking-widest uppercase mb-6">Shipping Details</h2>
+
+        <form id="checkout-form" class="space-y-4">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-zinc-400 text-xs font-outfit tracking-wider uppercase mb-2 block">First Name *</label>
+              <input
+                type="text"
+                name="first_name"
+                required
+                class="input-field"
+                placeholder="Rahul"
+                :value={session ? session.name?.split(" ")[0] || "" : ""}
+              />
+            </div>
+            <div>
+              <label class="text-zinc-400 text-xs font-outfit tracking-wider uppercase mb-2 block">Last Name *</label>
+              <input
+                type="text"
+                name="last_name"
+                required
+                class="input-field"
+                placeholder="Kumar"
+              />
+            </div>
+          </div>
+
+          <div>
+            <label class="text-zinc-400 text-xs font-outfit tracking-wider uppercase mb-2 block">Email *</label>
+            <input
+              type="email"
+              name="email"
+              required
+              class="input-field"
+              placeholder="you@example.com"
+              value={session?.email || ""}
+            />
+          </div>
+
+          <div>
+            <label class="text-zinc-400 text-xs font-outfit tracking-wider uppercase mb-2 block">Phone *</label>
+            <input
+              type="tel"
+              name="phone"
+              required
+              class="input-field"
+              placeholder="+91 9876543210"
+            />
+          </div>
+
+          <div>
+            <label class="text-zinc-400 text-xs font-outfit tracking-wider uppercase mb-2 block">Address *</label>
+            <textarea
+              name="address"
+              required
+              rows="2"
+              class="input-field resize-none"
+              placeholder="House/Flat no, Street, Locality"
+            ></textarea>
+          </div>
+
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <label class="text-zinc-400 text-xs font-outfit tracking-wider uppercase mb-2 block">City *</label>
+              <input type="text" name="city" required class="input-field" placeholder="Mumbai" />
+            </div>
+            <div>
+              <label class="text-zinc-400 text-xs font-outfit tracking-wider uppercase mb-2 block">State *</label>
+              <input type="text" name="state" required class="input-field" placeholder="Maharashtra" />
+            </div>
+          </div>
+
+          <div>
+            <label class="text-zinc-400 text-xs font-outfit tracking-wider uppercase mb-2 block">Pincode *</label>
+            <input type="text" name="pincode" required class="input-field" placeholder="400001" maxlength="6" />
+          </div>
+        </form>
+      </div>
+
+      <!-- Order summary -->
+      <div>
+        <h2 class="font-outfit font-semibold text-white text-xs tracking-widest uppercase mb-6">Order Summary</h2>
+
+        <div class="bg-zinc-900 p-6 space-y-4">
+          <!-- Cart items -->
+          <div class="space-y-4 max-h-64 overflow-y-auto">
+            <template x-for="item in $store.cart.items" :key="item.key">
+              <div class="flex gap-3">
+                <img :src="item.image" :alt="item.name" class="w-14 h-18 object-cover bg-zinc-800" style="height:72px;" />
+                <div class="flex-1">
+                  <p class="text-white text-xs font-outfit tracking-wide uppercase" x-text="item.name"></p>
+                  <p class="text-zinc-500 text-xs mt-0.5">Size: <span x-text="item.size"></span> · Qty: <span x-text="item.qty"></span></p>
+                  <p class="text-white text-sm font-inter mt-1" x-text="$store.cart.formatPrice(item.price * item.qty)"></p>
+                </div>
+              </div>
+            </template>
+          </div>
+
+          <div class="border-t border-zinc-800 pt-4 space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-zinc-400">Subtotal</span>
+              <span class="text-white" x-text="$store.cart.formatPrice($store.cart.subtotal)"></span>
+            </div>
+            <div class="flex justify-between text-sm">
+              <span class="text-zinc-400">Shipping</span>
+              <span class="text-zinc-300" x-text="$store.cart.subtotal >= 999 ? 'FREE' : '₹99'"></span>
+            </div>
+            <div class="flex justify-between border-t border-zinc-800 pt-2 mt-2">
+              <span class="text-white font-outfit font-bold tracking-wider uppercase text-sm">Total</span>
+              <span class="text-white font-outfit font-bold text-xl" x-text="$store.cart.formatPrice($store.cart.total)"></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Error message -->
+        <p x-show="error" x-text="error" class="text-red-400 text-sm mt-4 font-inter"></p>
+
+        <!-- Pay button -->
+        <button
+          x-on:click="initiatePayment()"
+          x-bind:disabled="loading || $store.cart.count === 0"
+          class="btn-primary w-full mt-6 flex items-center justify-center gap-2"
+        >
+          <span x-show="!loading">Pay with Razorpay</span>
+          <span x-show="loading" class="flex items-center gap-2">
+            <svg class="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+            </svg>
+            Processing...
+          </span>
+        </button>
+
+        <p class="text-zinc-600 text-xs text-center mt-3 font-inter">
+          🔒 Payments secured by Razorpay
+        </p>
+
+        {!session && (
+          <p class="text-zinc-500 text-xs text-center mt-4 font-inter">
+            <a href="/auth/login" class="text-brand-red hover:underline">Login</a> to save your order history
+          </p>
+        )}
+      </div>
+    </div>
+  </div>
+</BaseLayout>
+
+<script src="https://checkout.razorpay.com/v1/checkout.js" is:inline></script>
+
+<script define:vars={{ razorpayKeyId }} is:inline>
+  function checkoutApp() {
+    return {
+      loading: false,
+      error: "",
+
+      getFormData() {
+        const form = document.getElementById("checkout-form");
+        const data = new FormData(form);
+        return {
+          first_name: data.get("first_name"),
+          last_name: data.get("last_name"),
+          email: data.get("email"),
+          phone: data.get("phone"),
+          address: data.get("address"),
+          city: data.get("city"),
+          state: data.get("state"),
+          pincode: data.get("pincode"),
+        };
+      },
+
+      async initiatePayment() {
+        const form = document.getElementById("checkout-form");
+        if (!form.checkValidity()) {
+          form.reportValidity();
+          return;
+        }
+
+        if (this.$store.cart.count === 0) {
+          this.error = "Your cart is empty.";
+          return;
+        }
+
+        this.loading = true;
+        this.error = "";
+
+        const formData = this.getFormData();
+
+        try {
+          const res = await fetch("/api/orders/create", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              items: this.$store.cart.items,
+              total: this.$store.cart.total,
+              subtotal: this.$store.cart.subtotal,
+              customer: formData,
+            }),
+          });
+
+          const data = await res.json();
+          if (!res.ok) throw new Error(data.error || "Failed to create order");
+
+          const options = {
+            key: razorpayKeyId,
+            amount: data.amount,
+            currency: "INR",
+            name: "intru.in",
+            description: "Premium Streetwear",
+            order_id: data.razorpay_order_id,
+            prefill: {
+              name: `${formData.first_name} ${formData.last_name}`,
+              email: formData.email,
+              contact: formData.phone,
+            },
+            theme: { color: "#d73f3f" },
+            handler: async (response) => {
+              const verifyRes = await fetch("/api/orders/verify", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                  razorpay_order_id: response.razorpay_order_id,
+                  razorpay_payment_id: response.razorpay_payment_id,
+                  razorpay_signature: response.razorpay_signature,
+                  order_id: data.order_id,
+                }),
+              });
+
+              const verifyData = await verifyRes.json();
+              if (verifyData.success) {
+                this.$store.cart.clear();
+                window.location.href = `/checkout/success?order=${data.order_id}`;
+              } else {
+                this.error = "Payment verification failed. Please contact support.";
+              }
+            },
+            modal: {
+              ondismiss: () => {
+                this.loading = false;
+              },
+            },
+          };
+
+          const rzp = new window.Razorpay(options);
+          rzp.open();
+        } catch (err) {
+          this.error = err.message || "Something went wrong. Please try again.";
+          this.loading = false;
+        }
+      },
+    };
+  }
+</script>

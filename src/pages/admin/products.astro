@@ -1,0 +1,214 @@
+---
+import AdminLayout from "@/layouts/AdminLayout.astro";
+import { getProducts } from "@/lib/db";
+
+const db = Astro.locals.runtime?.env?.DB;
+let products = [];
+if (db) {
+  products = await getProducts(db);
+}
+---
+
+<AdminLayout title="Products">
+  <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+    <p style="color:#666; font-size:13px;">{products.length} products</p>
+    <button
+      onclick="document.getElementById('product-modal').style.display='flex'"
+      style="background:#d73f3f; color:white; border:none; padding:10px 20px; font-family:'Outfit',sans-serif; font-size:11px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase; cursor:pointer;"
+    >
+      + Add Product
+    </button>
+  </div>
+
+  <!-- Products table -->
+  <div style="background:white; border-radius:4px; overflow:hidden;">
+    <div style="overflow-x:auto;">
+      <table style="width:100%; border-collapse:collapse; font-size:13px;">
+        <thead>
+          <tr style="background:#f8f8f8; border-bottom:2px solid #e5e5e5;">
+            <th style="text-align:left; padding:12px 16px; font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:#666;">Product</th>
+            <th style="text-align:left; padding:12px 16px; font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:#666;">Price</th>
+            <th style="text-align:left; padding:12px 16px; font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:#666;">Category</th>
+            <th style="text-align:left; padding:12px 16px; font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:#666;">Status</th>
+            <th style="text-align:left; padding:12px 16px; font-size:11px; text-transform:uppercase; letter-spacing:0.1em; color:#666;">Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {products.map((product) => (
+            <tr style="border-bottom:1px solid #f0f0f0;" class="product-row">
+              <td style="padding:12px 16px;">
+                <div style="display:flex; align-items:center; gap:12px;">
+                  <img src={product.image_url} alt={product.name} style="width:40px; height:48px; object-fit:cover; background:#f0f0f0;" />
+                  <div>
+                    <div style="font-weight:600; font-size:13px;">{product.name}</div>
+                    <div style="font-size:11px; color:#999; font-family:monospace;">{product.slug}</div>
+                  </div>
+                </div>
+              </td>
+              <td style="padding:12px 16px;">
+                <div style="font-weight:600;">₹{product.sale_price || product.price}</div>
+                {product.sale_price && (
+                  <div style="font-size:11px; color:#999; text-decoration:line-through;">₹{product.price}</div>
+                )}
+              </td>
+              <td style="padding:12px 16px; font-size:12px; color:#666; text-transform:capitalize;">{product.category}</td>
+              <td style="padding:12px 16px;">
+                <span style={`font-size:10px; padding:3px 8px; text-transform:uppercase; letter-spacing:0.1em; font-weight:600; background:${product.stock_status === 'in_stock' ? '#dcfce7' : '#fee2e2'}; color:${product.stock_status === 'in_stock' ? '#166534' : '#991b1b'};`}>
+                  {product.stock_status === "in_stock" ? "In Stock" : "Out of Stock"}
+                </span>
+              </td>
+              <td style="padding:12px 16px;">
+                <button
+                  onclick={`editProduct(${JSON.stringify(product)})`}
+                  style="background:none; border:1px solid #e5e5e5; padding:5px 12px; font-size:11px; cursor:pointer; margin-right:8px;"
+                >
+                  Edit
+                </button>
+                <button
+                  onclick={`deleteProduct('${product.id}', '${product.name}')`}
+                  style="background:none; border:1px solid #fee2e2; color:#d73f3f; padding:5px 12px; font-size:11px; cursor:pointer;"
+                >
+                  Delete
+                </button>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Add/Edit Modal -->
+  <div id="product-modal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.5); z-index:100; align-items:flex-start; justify-content:center; overflow-y:auto; padding:40px 20px;">
+    <div style="background:white; width:100%; max-width:600px; border-radius:4px; padding:32px;">
+      <h2 id="modal-title" style="font-family:'Outfit',sans-serif; font-size:18px; font-weight:700; margin-bottom:24px;">Add Product</h2>
+      <form id="product-form" style="display:grid; gap:16px;">
+        <input type="hidden" id="product-id" />
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div>
+            <label style="font-size:11px; color:#666; text-transform:uppercase; letter-spacing:0.1em; display:block; margin-bottom:6px;">Name *</label>
+            <input id="prod-name" type="text" required style="width:100%; padding:10px; border:1px solid #ddd; font-size:13px; outline:none;" />
+          </div>
+          <div>
+            <label style="font-size:11px; color:#666; text-transform:uppercase; letter-spacing:0.1em; display:block; margin-bottom:6px;">Category</label>
+            <select id="prod-category" style="width:100%; padding:10px; border:1px solid #ddd; font-size:13px; outline:none; background:white;">
+              <option value="tshirts">T-Shirts</option>
+              <option value="hoodies">Hoodies</option>
+              <option value="bottoms">Bottoms</option>
+              <option value="jackets">Jackets</option>
+              <option value="sets">Sets</option>
+            </select>
+          </div>
+        </div>
+        <div>
+          <label style="font-size:11px; color:#666; text-transform:uppercase; letter-spacing:0.1em; display:block; margin-bottom:6px;">Description</label>
+          <textarea id="prod-desc" rows="3" style="width:100%; padding:10px; border:1px solid #ddd; font-size:13px; outline:none; resize:vertical;"></textarea>
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div>
+            <label style="font-size:11px; color:#666; text-transform:uppercase; letter-spacing:0.1em; display:block; margin-bottom:6px;">Price (₹) *</label>
+            <input id="prod-price" type="number" required min="0" style="width:100%; padding:10px; border:1px solid #ddd; font-size:13px; outline:none;" />
+          </div>
+          <div>
+            <label style="font-size:11px; color:#666; text-transform:uppercase; letter-spacing:0.1em; display:block; margin-bottom:6px;">Sale Price (₹)</label>
+            <input id="prod-sale-price" type="number" min="0" style="width:100%; padding:10px; border:1px solid #ddd; font-size:13px; outline:none;" />
+          </div>
+        </div>
+        <div>
+          <label style="font-size:11px; color:#666; text-transform:uppercase; letter-spacing:0.1em; display:block; margin-bottom:6px;">Image URL</label>
+          <input id="prod-image" type="url" style="width:100%; padding:10px; border:1px solid #ddd; font-size:13px; outline:none;" placeholder="https://..." />
+        </div>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px;">
+          <div>
+            <label style="font-size:11px; color:#666; text-transform:uppercase; letter-spacing:0.1em; display:block; margin-bottom:6px;">Stock Status</label>
+            <select id="prod-stock" style="width:100%; padding:10px; border:1px solid #ddd; font-size:13px; outline:none; background:white;">
+              <option value="in_stock">In Stock</option>
+              <option value="out_of_stock">Out of Stock</option>
+            </select>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px; padding-top:24px;">
+            <input id="prod-featured" type="checkbox" />
+            <label for="prod-featured" style="font-size:12px; color:#666;">Featured on homepage</label>
+          </div>
+        </div>
+        <div style="display:flex; gap:12px; justify-content:flex-end; margin-top:8px;">
+          <button type="button" onclick="closeModal()" style="padding:10px 24px; border:1px solid #ddd; background:white; cursor:pointer; font-size:12px;">Cancel</button>
+          <button type="submit" style="padding:10px 24px; background:#d73f3f; color:white; border:none; cursor:pointer; font-family:'Outfit',sans-serif; font-size:11px; font-weight:700; letter-spacing:0.15em; text-transform:uppercase;">Save Product</button>
+        </div>
+        <div id="form-error" style="color:#d73f3f; font-size:12px; display:none;"></div>
+      </form>
+    </div>
+  </div>
+</AdminLayout>
+
+<script is:inline>
+  function closeModal() {
+    document.getElementById("product-modal").style.display = "none";
+    document.getElementById("product-form").reset();
+    document.getElementById("product-id").value = "";
+    document.getElementById("modal-title").textContent = "Add Product";
+  }
+
+  function editProduct(product) {
+    document.getElementById("modal-title").textContent = "Edit Product";
+    document.getElementById("product-id").value = product.id;
+    document.getElementById("prod-name").value = product.name || "";
+    document.getElementById("prod-desc").value = product.description || "";
+    document.getElementById("prod-price").value = product.price || "";
+    document.getElementById("prod-sale-price").value = product.sale_price || "";
+    document.getElementById("prod-category").value = product.category || "tshirts";
+    document.getElementById("prod-image").value = product.image_url || "";
+    document.getElementById("prod-stock").value = product.stock_status || "in_stock";
+    document.getElementById("prod-featured").checked = product.featured === 1;
+    document.getElementById("product-modal").style.display = "flex";
+  }
+
+  async function deleteProduct(id, name) {
+    if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
+    try {
+      const res = await fetch(`/api/admin/products?id=${id}`, { method: "DELETE" });
+      if (res.ok) window.location.reload();
+      else alert("Failed to delete product");
+    } catch {
+      alert("Error deleting product");
+    }
+  }
+
+  document.getElementById("product-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const id = document.getElementById("product-id").value;
+    const errEl = document.getElementById("form-error");
+    errEl.style.display = "none";
+
+    const body = {
+      name: document.getElementById("prod-name").value,
+      description: document.getElementById("prod-desc").value,
+      price: document.getElementById("prod-price").value,
+      sale_price: document.getElementById("prod-sale-price").value || null,
+      category: document.getElementById("prod-category").value,
+      image_url: document.getElementById("prod-image").value,
+      stock_status: document.getElementById("prod-stock").value,
+      featured: document.getElementById("prod-featured").checked ? 1 : 0,
+      ...(id ? { id } : {}),
+    };
+
+    try {
+      const res = await fetch("/api/admin/products", {
+        method: id ? "PUT" : "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        closeModal();
+        window.location.reload();
+      } else {
+        errEl.textContent = data.error || "Failed to save";
+        errEl.style.display = "block";
+      }
+    } catch {
+      errEl.textContent = "Error saving product";
+      errEl.style.display = "block";
+    }
+  });
+</script>

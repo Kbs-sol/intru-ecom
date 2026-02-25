@@ -1,0 +1,121 @@
+---
+import Navigation from "@/components/Navigation.astro";
+import Footer from "@/components/Footer.astro";
+import CartDrawer from "@/components/CartDrawer.astro";
+import SEOHead from "@/components/SEOHead.astro";
+
+interface Props {
+  title?: string;
+  description?: string;
+  image?: string;
+  canonical?: string;
+  schema?: object;
+  noindex?: boolean;
+}
+
+const {
+  title = "intru.in — Minimal Streetwear",
+  description = "Premium minimal streetwear crafted for those who move with purpose. Shop tees, hoodies, and essentials at intru.in.",
+  image = "https://intru.in/og-image.jpg",
+  canonical,
+  schema,
+  noindex = false,
+} = Astro.props;
+
+const canonicalURL = canonical || new URL(Astro.url.pathname, "https://intru.in").href;
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    {noindex && <meta name="robots" content="noindex, nofollow" />}
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content={image} />
+    <meta property="og:url" content={canonicalURL} />
+    <meta property="og:site_name" content="intru.in" />
+
+    <!-- Twitter Card -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={image} />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+
+    <!-- Cart store (inlined for Alpine.js init) -->
+    <script is:inline>
+      document.addEventListener("alpine:init", () => {
+        Alpine.store("cart", {
+          items: [],
+          open: false,
+          init() {
+            try {
+              const saved = localStorage.getItem("intru_cart");
+              if (saved) this.items = JSON.parse(saved);
+            } catch { this.items = []; }
+          },
+          save() {
+            try { localStorage.setItem("intru_cart", JSON.stringify(this.items)); } catch {}
+          },
+          add(product, size, qty = 1) {
+            const key = `${product.id}-${size}`;
+            const existing = this.items.find((i) => i.key === key);
+            if (existing) { existing.qty += qty; }
+            else { this.items.push({ key, id: product.id, name: product.name, price: product.sale_price || product.price, image: product.image_url, size, qty }); }
+            this.save();
+            this.open = true;
+          },
+          remove(key) { this.items = this.items.filter((i) => i.key !== key); this.save(); },
+          updateQty(key, qty) {
+            const item = this.items.find((i) => i.key === key);
+            if (item) { if (qty <= 0) { this.remove(key); } else { item.qty = qty; this.save(); } }
+          },
+          clear() { this.items = []; this.save(); },
+          get count() { return this.items.reduce((sum, i) => sum + i.qty, 0); },
+          get subtotal() { return this.items.reduce((sum, i) => sum + i.price * i.qty, 0); },
+          get total() { return this.subtotal >= 999 ? this.subtotal : this.subtotal + 99; },
+          formatPrice(amount) {
+            return new Intl.NumberFormat("en-IN", { style: "currency", currency: "INR", minimumFractionDigits: 0 }).format(amount);
+          },
+        });
+      });
+    </script>
+
+    <!-- JSON-LD -->
+    {schema && <SEOHead schema={schema} />}
+  </head>
+  <body class="bg-brand-black text-brand-white font-inter">
+    <!-- Announcement bar -->
+    <div class="bg-brand-red text-white text-[10px] tracking-widest uppercase py-1.5 overflow-hidden">
+      <div class="announcement-track whitespace-nowrap">
+        {Array(4).fill(null).map(() => (
+          <span class="px-8">🚚 Free shipping on prepaid orders above ₹999 &nbsp;&bull;&nbsp; COD available &nbsp;&bull;&nbsp; Pan-India delivery &nbsp;&bull;&nbsp; No returns on sale items &nbsp;&bull;&nbsp;</span>
+        ))}
+      </div>
+    </div>
+
+    <Navigation />
+
+    <main class="min-h-screen">
+      <slot />
+    </main>
+
+    <Footer />
+    <CartDrawer />
+  </body>
+</html>

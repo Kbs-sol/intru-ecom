@@ -1,0 +1,27 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+import { getPage } from "@/lib/db";
+
+const db = Astro.locals.runtime?.env?.DB;
+let page = null;
+if (db) {
+  page = await getPage(db, "returns");
+}
+
+const title = page?.title || "Returns & Exchanges";
+const content = page?.content || "<p>Loading...</p>";
+const metaTitle = page?.meta_title || "Returns & Exchanges | intru.in";
+const metaDesc = page?.meta_description || "Read intru.in returns and exchanges policy.";
+---
+
+<BaseLayout title={metaTitle} description={metaDesc}>
+  <div class="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+    <nav class="flex items-center gap-2 text-xs text-zinc-500 mb-8 font-outfit tracking-wider uppercase">
+      <a href="/" class="hover:text-white transition-colors">Home</a>
+      <span>/</span>
+      <span class="text-white">{title}</span>
+    </nav>
+    <h1 class="font-outfit font-bold text-3xl text-white tracking-wider uppercase mb-8">{title}</h1>
+    <div class="prose prose-sm prose-invert max-w-none text-zinc-400 font-inter leading-relaxed [&_h2]:text-white [&_h2]:font-outfit [&_h2]:uppercase [&_h2]:tracking-wide [&_h3]:text-white [&_h3]:font-outfit [&_p]:mb-4 [&_h3]:mt-6 [&_h3]:mb-3" set:html={content} />
+  </div>
+</BaseLayout>

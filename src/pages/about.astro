@@ -1,0 +1,141 @@
+---
+import BaseLayout from "@/layouts/BaseLayout.astro";
+
+const orgSchema = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "@id": "https://intru.in/#organization",
+  name: "intru.in",
+  url: "https://intru.in",
+  foundingDate: "2024",
+  description: "intru.in is a premium minimal streetwear brand from India, crafted for those who move with purpose.",
+  brand: {
+    "@type": "Brand",
+    name: "intru",
+    description: "Minimal streetwear — heavyweight fabrics, clean cuts, zero noise.",
+  },
+};
+---
+
+<BaseLayout
+  title="Our Story — intru.in | Minimal Streetwear Brand"
+  description="Learn the story behind intru.in — a minimal streetwear brand born from the belief that great fits shouldn't cost a fortune. Premium fabrics, clean design, built for purpose."
+  schema={orgSchema}
+>
+  <!-- Hero -->
+  <section class="relative py-32 bg-brand-black overflow-hidden">
+    <div class="absolute inset-0 opacity-10">
+      <div class="absolute top-0 right-0 w-96 h-96 bg-brand-red rounded-full blur-3xl"></div>
+    </div>
+    <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+      <p class="text-brand-red text-xs font-outfit tracking-widest uppercase mb-4">Est. 2024</p>
+      <h1 class="font-outfit font-black text-5xl md:text-7xl text-white leading-tight">
+        We Intrude<br />
+        <span style="-webkit-text-stroke: 2px #d73f3f; color: transparent;">Fashion.</span>
+      </h1>
+      <p class="text-zinc-400 font-inter text-lg max-w-2xl mx-auto mt-6 leading-relaxed">
+        Not another streetwear brand. A rebellion against mediocre clothing that falls apart after three washes.
+      </p>
+    </div>
+  </section>
+
+  <!-- Story -->
+  <section class="py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid md:grid-cols-2 gap-16 items-start">
+      <div>
+        <h2 class="font-outfit font-bold text-2xl text-white tracking-wide uppercase mb-6">
+          How it started
+        </h2>
+        <div class="space-y-4 text-zinc-400 font-inter text-sm leading-relaxed">
+          <p>
+            intru started with one question: <em class="text-white">why is it so hard to find clothing that looks premium, feels premium, and doesn't fall apart?</em>
+          </p>
+          <p>
+            We were tired of fast fashion that pills after a month. Tired of "streetwear" brands that charge ₹5000 for fabric that costs ₹200. And tired of settling.
+          </p>
+          <p>
+            So we started intru — with a simple promise. Every piece we make would be worth wearing five years from now. Not because of a logo. Because of what it's made of.
+          </p>
+        </div>
+      </div>
+      <div class="aspect-square bg-zinc-900 overflow-hidden">
+        <img
+          src="https://images.unsplash.com/photo-1441986300917-64674bd600d8?w=600&q=80"
+          alt="intru brand story"
+          class="w-full h-full object-cover"
+          loading="lazy"
+        />
+      </div>
+    </div>
+  </section>
+
+  <!-- Philosophy -->
+  <section class="py-20 bg-zinc-950">
+    <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="text-center mb-16">
+        <p class="text-brand-red text-xs font-outfit tracking-widest uppercase mb-4">What we believe</p>
+        <h2 class="font-outfit font-bold text-3xl md:text-4xl text-white uppercase tracking-wider">
+          The intru Philosophy
+        </h2>
+      </div>
+
+      <div class="grid md:grid-cols-3 gap-8">
+        {[
+          {
+            title: "Design First",
+            desc: "Every piece starts with a single question: will this look just as good in 5 years? If the answer is yes, we make it. If not, we don't.",
+            icon: "◈",
+          },
+          {
+            title: "Quality Over Quantity",
+            desc: "We make fewer pieces, made better. 400GSM fleece. 220GSM combed cotton. Premium ripstop. We don't cut corners where it matters.",
+            icon: "▲",
+          },
+          {
+            title: "Customer First",
+            desc: "Every product is tested before it ships. If it doesn't meet our standards, it doesn't meet yours. Simple as that.",
+            icon: "◉",
+          },
+        ].map((item) => (
+          <div class="text-center">
+            <div class="text-4xl text-brand-red mb-4 font-outfit">{item.icon}</div>
+            <h3 class="font-outfit font-bold text-white tracking-wider uppercase text-sm mb-3">{item.title}</h3>
+            <p class="text-zinc-500 font-inter text-sm leading-relaxed">{item.desc}</p>
+          </div>
+        ))}
+      </div>
+    </div>
+  </section>
+
+  <!-- Numbers -->
+  <section class="py-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+      {[
+        { num: "6", label: "Products" },
+        { num: "100%", label: "Premium Fabric" },
+        { num: "2024", label: "Founded" },
+        { num: "India", label: "Made For" },
+      ].map((stat) => (
+        <div>
+          <div class="font-outfit font-black text-4xl md:text-5xl text-brand-red">{stat.num}</div>
+          <p class="text-zinc-500 font-outfit text-xs tracking-widest uppercase mt-2">{stat.label}</p>
+        </div>
+      ))}
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="py-24 bg-zinc-950 text-center">
+    <div class="max-w-2xl mx-auto px-4">
+      <h2 class="font-outfit font-black text-4xl md:text-5xl text-white mb-6">
+        Ready to intrude?
+      </h2>
+      <p class="text-zinc-400 font-inter text-base mb-10 leading-relaxed">
+        Join hundreds of people who've made the switch to clothing that actually lasts. Shop the collection today.
+      </p>
+      <a href="/products" class="btn-primary inline-block">
+        Shop the Collection
+      </a>
+    </div>
+  </section>
+</BaseLayout>

@@ -1,0 +1,83 @@
+---
+import { getSession } from "@/lib/auth";
+
+interface Props {
+  title?: string;
+}
+
+const { title = "Admin — intru.in" } = Astro.props;
+
+const secret = import.meta.env.AUTH_SECRET || "";
+const session = await getSession(Astro.request, secret);
+
+if (!session || session.role !== "admin") {
+  return Astro.redirect("/admin/login");
+}
+
+const navItems = [
+  { href: "/admin", label: "Dashboard", icon: "⊞" },
+  { href: "/admin/products", label: "Products", icon: "▦" },
+  { href: "/admin/orders", label: "Orders", icon: "◈" },
+  { href: "/admin/pages", label: "Pages", icon: "☰" },
+];
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{title}</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Outfit:wght@600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/admin.css" />
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'Inter', sans-serif; background: #f5f5f5; color: #111; }
+    </style>
+  </head>
+  <body>
+    <div style="display:flex; min-height:100vh;">
+      <!-- Sidebar -->
+      <aside style="width:240px; background:#0a0a0a; color:white; display:flex; flex-direction:column; position:sticky; top:0; height:100vh;">
+        <div style="padding:24px 20px; border-bottom:1px solid #222;">
+          <a href="/admin" style="font-family:'Outfit',sans-serif; font-size:22px; font-weight:700; color:white; text-decoration:none; letter-spacing:0.15em; text-transform:uppercase;">intru</a>
+          <div style="font-size:10px; color:#666; letter-spacing:0.2em; text-transform:uppercase; margin-top:2px;">Admin Panel</div>
+        </div>
+        <nav style="padding:16px 0; flex:1;">
+          {navItems.map((item) => (
+            <a
+              href={item.href}
+              style={`display:flex; align-items:center; gap:10px; padding:12px 20px; text-decoration:none; font-size:13px; color:${Astro.url.pathname === item.href ? 'white' : '#888'}; background:${Astro.url.pathname === item.href ? '#1a1a1a' : 'transparent'}; border-right:${Astro.url.pathname === item.href ? '3px solid #d73f3f' : '3px solid transparent'}; transition:all 0.2s; letter-spacing:0.05em;`}
+            >
+              <span style="font-size:16px;">{item.icon}</span>
+              {item.label}
+            </a>
+          ))}
+        </nav>
+        <div style="padding:16px 20px; border-top:1px solid #222;">
+          <div style="font-size:11px; color:#666; margin-bottom:8px;">{session.email}</div>
+          <form method="POST" action="/api/auth/logout">
+            <button type="submit" style="font-size:11px; color:#d73f3f; background:none; border:none; cursor:pointer; letter-spacing:0.1em; text-transform:uppercase;">
+              Logout
+            </button>
+          </form>
+        </div>
+      </aside>
+
+      <!-- Main content -->
+      <div style="flex:1; display:flex; flex-direction:column; overflow:hidden;">
+        <header style="background:white; padding:16px 32px; border-bottom:1px solid #e5e5e5; display:flex; align-items:center; justify-content:space-between;">
+          <h1 style="font-family:'Outfit',sans-serif; font-size:20px; font-weight:700; color:#0a0a0a;">{title}</h1>
+          <a href="/" target="_blank" style="font-size:12px; color:#888; text-decoration:none; letter-spacing:0.05em;">View Site →</a>
+        </header>
+        <main style="flex:1; padding:32px; overflow-y:auto;">
+          <slot />
+        </main>
+      </div>
+    </div>
+  </body>
+</html>

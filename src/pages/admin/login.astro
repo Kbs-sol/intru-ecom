@@ -1,0 +1,84 @@
+---
+import { getSession } from "@/lib/auth";
+
+const secret = import.meta.env.AUTH_SECRET || "";
+const session = await getSession(Astro.request, secret);
+
+if (session?.role === "admin") {
+  return Astro.redirect("/admin");
+}
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Admin Login — intru.in</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@700;900&family=Inter:wght@400;500&display=swap" rel="stylesheet" />
+    <style>
+      * { box-sizing: border-box; margin: 0; padding: 0; }
+      body { font-family: 'Inter', sans-serif; background: #0a0a0a; color: #fafafa; display: flex; min-height: 100vh; align-items: center; justify-content: center; padding: 24px; }
+      .card { width: 100%; max-width: 360px; }
+      .logo { font-family: 'Outfit', sans-serif; font-size: 28px; font-weight: 900; letter-spacing: 0.2em; text-transform: uppercase; color: white; margin-bottom: 4px; }
+      .sub { font-size: 11px; color: #666; letter-spacing: 0.2em; text-transform: uppercase; margin-bottom: 40px; }
+      label { font-size: 11px; color: #888; letter-spacing: 0.15em; text-transform: uppercase; display: block; margin-bottom: 8px; }
+      input { width: 100%; background: #1a1a1a; border: 1px solid #333; color: white; padding: 14px 16px; font-family: 'Inter', sans-serif; font-size: 14px; outline: none; transition: border-color 0.2s; }
+      input:focus { border-color: #d73f3f; }
+      button { width: 100%; background: #d73f3f; color: white; border: none; padding: 14px; font-family: 'Outfit', sans-serif; font-size: 12px; font-weight: 700; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: background 0.2s; margin-top: 24px; }
+      button:hover { background: #b83535; }
+      .error { color: #d73f3f; font-size: 13px; margin-top: 12px; text-align: center; }
+    </style>
+  </head>
+  <body>
+    <div class="card">
+      <div class="logo">intru</div>
+      <div class="sub">Admin Panel</div>
+
+      <form id="login-form">
+        <div style="margin-bottom: 20px;">
+          <label>Password</label>
+          <input type="password" name="password" id="password" placeholder="••••••••" autocomplete="current-password" required />
+        </div>
+        <button type="submit" id="submit-btn">Sign In</button>
+        <div id="error" class="error" style="display:none;"></div>
+      </form>
+    </div>
+
+    <script>
+      document.getElementById("login-form")?.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById("submit-btn") as HTMLButtonElement;
+        const errEl = document.getElementById("error") as HTMLElement;
+        const password = (document.getElementById("password") as HTMLInputElement).value;
+
+        btn.textContent = "Signing in...";
+        btn.disabled = true;
+        errEl.style.display = "none";
+
+        try {
+          const res = await fetch("/api/admin/login", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ password }),
+          });
+          const data = await res.json();
+          if (res.ok) {
+            window.location.href = "/admin";
+          } else {
+            errEl.textContent = data.error || "Invalid password";
+            errEl.style.display = "block";
+            btn.textContent = "Sign In";
+            btn.disabled = false;
+          }
+        } catch {
+          errEl.textContent = "Something went wrong";
+          errEl.style.display = "block";
+          btn.textContent = "Sign In";
+          btn.disabled = false;
+        }
+      });
+    </script>
+  </body>
+</html>

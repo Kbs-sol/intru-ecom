@@ -1,0 +1,86 @@
+---
+import type { Product } from "@/lib/db";
+import { formatPrice } from "@/lib/utils";
+
+interface Props {
+  product: Product;
+}
+
+const { product } = Astro.props;
+const sizes = JSON.parse(product.sizes || '["S","M","L","XL","XXL"]') as string[];
+const displayPrice = product.sale_price ?? product.price;
+---
+
+<div
+  class="product-card"
+  x-data={`{
+    selectedSize: '',
+    product: ${JSON.stringify({
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      sale_price: product.sale_price,
+      image_url: product.image_url,
+    })},
+    addToCart() {
+      if (!this.selectedSize) {
+        this.selectedSize = '${sizes[0]}';
+      }
+      $store.cart.add(this.product, this.selectedSize);
+    }
+  }`}
+>
+  <!-- Image -->
+  <a href={`/products/${product.slug}`} class="block overflow-hidden aspect-[3/4]">
+    <img
+      src={product.image_url}
+      alt={product.name}
+      class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
+      loading="lazy"
+      width="400"
+      height="533"
+    />
+    {product.sale_price && product.sale_price < product.price && (
+      <div class="absolute top-3 left-3 bg-brand-red text-white text-[10px] font-bold tracking-widest uppercase px-2 py-1">
+        Sale
+      </div>
+    )}
+  </a>
+
+  <!-- Info -->
+  <div class="p-4">
+    <a href={`/products/${product.slug}`} class="block">
+      <h3 class="font-outfit font-semibold text-white text-sm tracking-wider uppercase hover:text-brand-red transition-colors duration-200">
+        {product.name}
+      </h3>
+    </a>
+
+    <div class="flex items-center gap-2 mt-1">
+      <span class="text-white font-inter font-medium text-sm">{formatPrice(displayPrice)}</span>
+      {product.sale_price && product.sale_price < product.price && (
+        <span class="text-zinc-500 line-through text-xs">{formatPrice(product.price)}</span>
+      )}
+    </div>
+
+    <!-- Size selector (compact) -->
+    <div class="flex gap-1 mt-3">
+      {sizes.map((size) => (
+        <button
+          x-on:click={`selectedSize = '${size}'`}
+          x-bind:class={`selectedSize === '${size}' ? 'border-white text-white' : 'border-zinc-700 text-zinc-500 hover:border-zinc-500'`}
+          class="text-[10px] font-outfit tracking-wider border px-1.5 py-0.5 transition-all duration-150"
+        >
+          {size}
+        </button>
+      ))}
+    </div>
+
+    <!-- Add to cart -->
+    <button
+      x-on:click="addToCart()"
+      class="w-full mt-3 bg-white text-black text-xs font-outfit font-semibold tracking-widest uppercase py-2.5 transition-all duration-200 hover:bg-brand-red hover:text-white"
+    >
+      Add to Bag
+    </button>
+  </div>
+</div>
