@@ -1,4 +1,5 @@
 ---
+import { withBase } from "@/lib/config";
 ---
 
 <footer class="bg-zinc-950 border-t border-zinc-900 mt-24">
@@ -6,7 +7,7 @@
     <div class="grid grid-cols-1 md:grid-cols-4 gap-12">
       <!-- Brand -->
       <div class="md:col-span-1">
-        <a href="/" class="font-outfit font-black text-3xl text-white tracking-widest uppercase hover:text-brand-red transition-colors duration-200">
+        <a href={withBase("/")} class="font-outfit font-black text-3xl text-white tracking-widest uppercase hover:text-brand-red transition-colors duration-200">
           intru
         </a>
         <p class="text-zinc-500 text-sm leading-relaxed mt-4 font-inter">
@@ -25,11 +26,11 @@
       <div>
         <h4 class="font-outfit font-semibold text-xs tracking-widest uppercase text-white mb-6">Shop</h4>
         <ul class="space-y-3">
-          <li><a href="/products" class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">All Products</a></li>
-          <li><a href="/products?cat=tshirts" class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">T-Shirts</a></li>
-          <li><a href="/products?cat=hoodies" class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Hoodies</a></li>
-          <li><a href="/products?cat=bottoms" class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Bottoms</a></li>
-          <li><a href="/products?cat=sets" class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Sets</a></li>
+          <li><a href={withBase("/products")} class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">All Products</a></li>
+          <li><a href={withBase("/products?cat=tshirts")} class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">T-Shirts</a></li>
+          <li><a href={withBase("/products?cat=hoodies")} class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Hoodies</a></li>
+          <li><a href={withBase("/products?cat=bottoms")} class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Bottoms</a></li>
+          <li><a href={withBase("/products?cat=sets")} class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Sets</a></li>
         </ul>
       </div>
 
@@ -37,10 +38,10 @@
       <div>
         <h4 class="font-outfit font-semibold text-xs tracking-widest uppercase text-white mb-6">Info</h4>
         <ul class="space-y-3">
-          <li><a href="/about" class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Our Story</a></li>
-          <li><a href="/legal/shipping" class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Shipping Policy</a></li>
-          <li><a href="/legal/returns" class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Returns & Exchanges</a></li>
-          <li><a href="/auth/login" class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">My Account</a></li>
+          <li><a href={withBase("/about")} class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Our Story</a></li>
+          <li><a href={withBase("/legal/shipping")} class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Shipping Policy</a></li>
+          <li><a href={withBase("/legal/returns")} class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Returns & Exchanges</a></li>
+          <li><a href={withBase("/auth/login")} class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">My Account</a></li>
         </ul>
       </div>
 
@@ -48,9 +49,9 @@
       <div>
         <h4 class="font-outfit font-semibold text-xs tracking-widest uppercase text-white mb-6">Legal</h4>
         <ul class="space-y-3">
-          <li><a href="/legal/privacy" class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Privacy Policy</a></li>
-          <li><a href="/legal/terms" class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Terms & Conditions</a></li>
-          <li><a href="/legal/returns" class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Return Policy</a></li>
+          <li><a href={withBase("/legal/privacy")} class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Privacy Policy</a></li>
+          <li><a href={withBase("/legal/terms")} class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Terms & Conditions</a></li>
+          <li><a href={withBase("/legal/returns")} class="text-zinc-500 hover:text-white text-sm transition-colors duration-200">Return Policy</a></li>
         </ul>
       </div>
     </div>

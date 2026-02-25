@@ -3,6 +3,7 @@ import BaseLayout from "@/layouts/BaseLayout.astro";
 import ProductCard from "@/components/ProductCard.astro";
 import { getFeaturedProducts } from "@/lib/db";
 import { formatPrice } from "@/lib/utils";
+import { withBase } from "@/lib/config";
 
 const db = Astro.locals.runtime?.env?.DB;
 let featuredProducts = [];
@@ -72,10 +73,10 @@ const orgSchema = {
           </p>
         </div>
         <div class="flex flex-col sm:flex-row gap-4 mt-10 animate-fade-up" style="animation-delay:0.65s; opacity:0; animation-fill-mode:forwards;">
-          <a href="/products" class="btn-primary inline-block text-center">
+          <a href={withBase("/products")} class="btn-primary inline-block text-center">
             Shop Collection
           </a>
-          <a href="/about" class="btn-secondary inline-block text-center">
+          <a href={withBase("/about")} class="btn-secondary inline-block text-center">
             Our Story
           </a>
         </div>
@@ -118,7 +119,7 @@ const orgSchema = {
           <p class="text-brand-red text-xs font-outfit tracking-widest uppercase mb-2">Featured</p>
           <h2 class="section-title text-3xl md:text-4xl">The Edit</h2>
         </div>
-        <a href="/products" class="btn-ghost hidden sm:block">View All →</a>
+        <a href={withBase("/products")} class="btn-ghost hidden sm:block">View All →</a>
       </div>
       <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
         {featuredProducts.map((product) => (
@@ -126,7 +127,7 @@ const orgSchema = {
         ))}
       </div>
       <div class="text-center mt-10 sm:hidden">
-        <a href="/products" class="btn-secondary inline-block">View All Products</a>
+        <a href={withBase("/products")} class="btn-secondary inline-block">View All Products</a>
       </div>
     </section>
   )}
@@ -139,7 +140,7 @@ const orgSchema = {
           <p class="text-brand-red text-xs font-outfit tracking-widest uppercase mb-2">New Arrivals</p>
           <h2 class="section-title text-3xl md:text-4xl">The Collection</h2>
         </div>
-        <a href="/products" class="btn-ghost hidden sm:block">View All →</a>
+        <a href={withBase("/products")} class="btn-ghost hidden sm:block">View All →</a>
       </div>
       <div class="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
         {[
@@ -147,7 +148,7 @@ const orgSchema = {
           { name: "Intru Oversized Drop", price: 1299, og: 1599, img: "https://images.unsplash.com/photo-1562157873-818bc0726f68?w=600&q=80", slug: "intru-oversized-drop" },
           { name: "Intru Essential Hoodie", price: 1999, og: 2499, img: "https://images.unsplash.com/photo-1556821840-3a63f15732ce?w=600&q=80", slug: "intru-essential-hoodie" },
         ].map((p) => (
-          <a href={`/products/${p.slug}`} class="group block bg-zinc-900 overflow-hidden hover:scale-[1.02] transition-transform duration-300">
+          <a href={withBase(`/products/${p.slug}`)} class="group block bg-zinc-900 overflow-hidden hover:scale-[1.02] transition-transform duration-300">
             <div class="aspect-[3/4] overflow-hidden">
               <img src={p.img} alt={p.name} class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700" loading="lazy" />
             </div>
@@ -180,7 +181,7 @@ const orgSchema = {
           <p class="text-zinc-400 font-inter text-base leading-relaxed mb-8">
             Every piece we make is a deliberate choice — heavyweight fabrics, minimal branding, and cuts designed to stand the test of time.
           </p>
-          <a href="/about" class="btn-secondary inline-block">Read Our Story</a>
+          <a href={withBase("/about")} class="btn-secondary inline-block">Read Our Story</a>
         </div>
         <div class="grid grid-cols-2 gap-4">
           <div class="aspect-[3/4] bg-zinc-900 overflow-hidden">

@@ -2,6 +2,18 @@
 import BaseLayout from "@/layouts/BaseLayout.astro";
 import { getProductBySlug, getProducts } from "@/lib/db";
 import { formatPrice } from "@/lib/utils";
+import { withBase } from "@/lib/config";
+
+export function getStaticPaths() {
+  return [
+    { params: { slug: "intru-classic-tee" } },
+    { params: { slug: "intru-oversized-drop" } },
+    { params: { slug: "intru-essential-hoodie" } },
+    { params: { slug: "intru-cargo-pants" } },
+    { params: { slug: "intru-zipup-track" } },
+    { params: { slug: "intru-jogger-set" } },
+  ];
+}
 
 const { slug } = Astro.params;
 
@@ -119,9 +131,9 @@ const productSchema = {
   <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
     <!-- Breadcrumb -->
     <nav class="flex items-center gap-2 text-xs text-zinc-500 mb-8 font-outfit tracking-wider uppercase">
-      <a href="/" class="hover:text-white transition-colors">Home</a>
+      <a href={withBase("/")} class="hover:text-white transition-colors">Home</a>
       <span>/</span>
-      <a href="/products" class="hover:text-white transition-colors">Shop</a>
+      <a href={withBase("/products")} class="hover:text-white transition-colors">Shop</a>
       <span>/</span>
       <span class="text-white">{product.name}</span>
     </nav>
@@ -245,7 +257,7 @@ const productSchema = {
           >
             Add to Bag
           </button>
-          <a href="/checkout" class="btn-secondary w-full text-center" x-on:click="addToCart()">
+          <a href={withBase("/checkout")} class="btn-secondary w-full text-center" x-on:click="addToCart()">
             Buy Now
           </a>
         </div>

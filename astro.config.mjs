@@ -1,21 +1,15 @@
 import { defineConfig } from "astro/config";
-import cloudflare from "@astrojs/cloudflare";
 import tailwind from "@astrojs/tailwind";
 import sitemap from "@astrojs/sitemap";
 
 export default defineConfig({
-  output: "server",
-  adapter: cloudflare({
-    platformProxy: {
-      enabled: true,
-    },
-    sessionKVBindingName: undefined,
-  }),
+  output: "static",
   integrations: [
     tailwind({ applyBaseStyles: false }),
     sitemap(),
   ],
-  site: "https://intru.in",
+  site: "https://kbs-sol.github.io",
+  base: "/intru-ecom",
   vite: {
     ssr: {
       external: ["node:crypto"],
